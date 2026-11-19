@@ -2,7 +2,3 @@ node_modules/
 dist/
 .DS_Store
 *.local
-
-# Keep personal media private; add these files to a private deployment environment only.
-public/images/
-public/music/

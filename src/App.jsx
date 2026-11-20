@@ -40,8 +40,39 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume
-  }, [volume])
+    const audio = audioRef.current
+    if (!audio) return
+
+    audio.volume = volume
+
+    const tryStart = async () => {
+      try {
+        await audio.play()
+        setIsPlaying(true)
+      } catch {
+        setIsPlaying(false)
+      }
+    }
+
+    tryStart()
+
+    const startOnInteraction = () => {
+      if (audio.paused) tryStart()
+      window.removeEventListener('pointerdown', startOnInteraction)
+      window.removeEventListener('touchstart', startOnInteraction)
+      window.removeEventListener('keydown', startOnInteraction)
+    }
+
+    window.addEventListener('pointerdown', startOnInteraction, { passive: true })
+    window.addEventListener('touchstart', startOnInteraction, { passive: true })
+    window.addEventListener('keydown', startOnInteraction)
+
+    return () => {
+      window.removeEventListener('pointerdown', startOnInteraction)
+      window.removeEventListener('touchstart', startOnInteraction)
+      window.removeEventListener('keydown', startOnInteraction)
+    }
+  }, [])
 
   const toggleMusic = async () => {
     const audio = audioRef.current
@@ -75,7 +106,7 @@ export default function App() {
         <ProgressIndicator step={step} onNavigate={navigate} />
       </header>
 
-      <audio ref={audioRef} src="/music/letter-music.m4a" loop preload="metadata" />
+      <audio ref={audioRef} src="/music/letter-music.m4a" loop preload="auto" autoPlay />
       <div className="music-player" aria-label="Background music controls">
         <button type="button" className="music-toggle" onClick={toggleMusic} aria-label={isPlaying ? 'Pause music' : 'Play music'}>
           <Music2 size={16} />
